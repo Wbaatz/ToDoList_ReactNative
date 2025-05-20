@@ -1,12 +1,60 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, TextInput, Pressable, FlatList } from 'react-native';
+import { useState } from 'react';
 
-import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
+  const [tasks, setTasks] = useState([]);
+  const [taskText, setTaskText] = useState('');
+
+  // Function to add a new task
+  const addTask = () => {
+    if (taskText.trim()) {
+      setTasks([...tasks, { id: Date.now().toString(), text: taskText, completed: false }]);
+      setTaskText('');
+    }
+  };
+
+  // Function to toggle task completion
+  const toggleTask = (id) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  // Function to delete a task
+  const deleteTask = (id) => {
+    setTasks(tasks.filter((task) => task.id !== id));
+  };
+
+  // Render each task item
+  const renderTask = ({ item }) => (
+    <ThemedView style={styles.taskContainer}>
+      <Pressable onPress={() => toggleTask(item.id)} style={styles.taskContent}>
+        <Ionicons
+          name={item.completed ? 'checkbox-outline' : 'square-outline'}
+          size={24}
+          color={item.completed ? '#4CAF50' : '#808080'}
+        />
+        <ThemedText
+          style={[styles.taskText, item.completed && styles.completedTask]}
+          type="default"
+        >
+          {item.text}
+        </ThemedText>
+      </Pressable>
+      <Pressable onPress={() => deleteTask(item.id)}>
+        <Ionicons name="trash-outline" size={24} color="#FF4444" />
+      </Pressable>
+    </ThemedView>
+  );
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -17,39 +65,32 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+        <ThemedText type="title">ToDoList</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
+      <ThemedView style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Add a new task..."
+          placeholderTextColor="#808080"
+          value={taskText}
+          onChangeText={setTaskText}
+          onSubmitEditing={addTask}
+        />
+        <Pressable style={styles.addButton} onPress={addTask}>
+          <Ionicons name="add-circle-outline" size={30} color="#4CAF50" />
+        </Pressable>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
+      <ThemedView style={styles.listContainer}>
+        {tasks.length === 0 ? (
+          <ThemedText style={styles.emptyText}>No tasks yet. Add one above!</ThemedText>
+        ) : (
+          <FlatList
+            data={tasks}
+            renderItem={renderTask}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+          />
+        )}
       </ThemedView>
     </ParallaxScrollView>
   );
@@ -60,10 +101,58 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 16,
   },
-  stepContainer: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
+    marginBottom: 16,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#808080',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 16,
+    color: '#000',
+    backgroundColor: '#F5F5F5',
+  },
+  addButton: {
+    padding: 5,
+  },
+  listContainer: {
+    gap: 8,
+  },
+  taskContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
     marginBottom: 8,
+  },
+  taskContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  taskText: {
+    fontSize: 16,
+    flex: 1,
+  },
+  completedTask: {
+    textDecorationLine: 'line-through',
+    color: '#808080',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#808080',
+    fontSize: 16,
+    marginTop: 20,
   },
   reactLogo: {
     height: 178,
