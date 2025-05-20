@@ -7,8 +7,14 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons';
 
+type Task = {
+  id: string;
+  text: string;
+  completed: boolean;
+};
+
 export default function HomeScreen() {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [taskText, setTaskText] = useState('');
 
   // Function to add a new task
